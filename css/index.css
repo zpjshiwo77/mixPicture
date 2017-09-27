@@ -1,0 +1,212 @@
+.none{display: none;}
+
+.photoBox{
+	width: 6.8625rem;
+	height: 9rem;
+	margin: 0 auto;
+	position: relative;
+}
+.photoBox .photo{
+	margin: 0 auto;
+	width: 6.8625rem;
+	height: 9rem;
+	background: #ddd;
+}
+.photoBox .btnCamera{
+	width: 5rem;
+	height: 5rem;
+	position: absolute;
+	top: 2rem;
+	left: 50%;
+	margin-left: -2.5rem;
+	border: 0.05rem solid #333;
+	color: #333;
+	font-size: 0.28rem;
+	text-align: center;
+	font-weight: bold;
+	line-height: 5rem;
+	z-index: 10;
+}
+.photoBox .removeBtn{
+	width: 0.4rem;
+	height: 0.4rem;
+	background: #333;
+	border-radius: 50%;
+	position: absolute;
+	top:0;
+	left: 0;
+	z-index: 8;
+	display: none;
+}
+.photoBox .removeBtn i{
+	display: inline-block;
+	width: 0.05rem;
+	height: 0.3rem;
+	background: #fff;
+	position: absolute;
+	top:50%;
+	left: 50%;
+	-webkit-transform: translate(-50%,-50%) rotate(45deg);
+}
+.photoBox .removeBtn i:last-child{
+	-webkit-transform: translate(-50%,-50%) rotate(-45deg);
+
+}
+/*photoBox end*/
+
+.panels{
+	position: fixed;
+	bottom: 0;
+	left: 0;
+	width: 100%;
+	height: 3rem;
+	border-top: 1px solid #333;
+}
+.panels .switch{
+	width: 100%;
+	height: 0.6rem;
+	background: #eee;
+}
+.panels .switch .btn{
+	width: 33.3%;
+	height: 0.6rem;
+	float: left;
+	font-size: 0.28rem;
+	text-align: center;
+	line-height: 0.6rem;
+}
+.panels .switch .btn.active{
+	background: #aa0520;
+	color: #fff;
+}
+
+.panels .confirmBox{
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	width: 100%;
+	height: 0.6rem;
+}
+.panels .confirmBox div{
+	float: left;
+	width: 1rem;
+	height: 0.5rem;
+	background: #aa0520;
+	margin: 0.05rem 0 0 0.7rem;
+	font-size: 0.24rem;
+	color: #fff;
+	line-height: 0.5rem;
+	text-align: center;
+	border-radius: 5px;
+}
+.panels .confirmBox .confirm{
+	float: right;
+	margin: 0.05rem 0.7rem 0 0;
+	background: rgb(50, 184, 176);
+}
+
+.panels .confirmBox .choseBox{
+	width: 100%;
+	height: 1.6rem;
+	position: relative;
+	overflow: hidden;
+}
+/*panels end*/
+
+.choseBox{
+	width: 100%;
+	height: 1.6rem;
+	margin: 0.1rem 0;
+	overflow: hidden;
+	padding: 0 0.35rem;
+}
+#filter .photo{
+	float: left;
+	width: 1.2rem;
+	height: 1.6rem;
+	margin: 0 0.07rem;
+	position: relative;
+	overflow: hidden;
+	border: 1px solid #fff;
+}
+#filter .photo.active{
+	border-color: #333;
+}
+#filter .photo img{
+	width: 1.2rem;
+}
+#filter .photo p{
+	width: 100%;
+	height: 0.4rem;
+	font-size: 0.2rem;
+	background: rgba(3,3,3,0.7);
+	color: #fff;
+	text-align: center;
+	line-height: 0.4rem;
+	position: absolute;
+	left: 0;
+	bottom: 0;
+	z-index: 2;
+}
+
+#sticker{
+	padding: 0.2rem 0.35rem;
+}
+#sticker img{
+	float: left;
+	width: 1.2rem;
+	height: 1.2rem;
+	margin: 0 0.07rem;
+}
+
+#frame .block{
+	float: left;
+	width: 1.2rem;
+	height: 1.6rem;
+	margin: 0 0.07rem;
+	position: relative;
+	overflow: hidden;
+}
+#frame .block img{
+	position: absolute;
+	top:0;
+	left: 0;
+	width: 1.2rem;
+}
+/*choseBox end*/
+
+#loading{
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background: rgba(0,0,0,0.85);
+	z-index: 99;
+}
+#loading .cont{
+	position: absolute;
+	top:50%;
+	left: 50%;
+	-webkit-transform: translate(-50%, -50%);
+	width: 100%;
+	height: auto;
+	font-size: 0.3rem;
+	color: #fff;
+	font-weight: bold;
+	text-align: center;
+}
+/*loading end*/
+
+.resultBox{
+	position: absolute;
+	top:0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	z-index: 9;
+	background: #fff;
+}
+.resultBox img{
+	width: 100%;
+}

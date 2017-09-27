@@ -1,200 +1,92 @@
 var camera = function(){
+	/****************************** 变量的定义 start ************************************/
 	var _self = this;
 
-	var loadBox=$('aside.loadBox'); 							//loading
-	var imgShell=$('div.shell');								//编辑的画布容器
-	var faceShell=$('div.shell');								//脸部识别的画布容器
-	var scaleShell=$('#shellscale');							//缩放画布容器
-	var filterShell=$("#shellFilter")							//滤镜图片容器
-	var btnCamera=$('a.btnCamera');								//上传图片按钮
-	var inputHt;												//输入框高度
-	var imgCanvas,faceCanvas,scaleCanvas,filterCanvas,baseLayer,frameLayer,inputLayer;	//编辑的画布，脸部识别画布，缩放的画布（处理滤镜），基础图片对象，框架图片对象,文本框对象
-	var filterArr = [];											//存储滤镜图片的数组
-	var imgScaleMin=0.5,imgScaleMax=5,imgScaleTimer;				//最小缩放比例，最大缩放比例
+	var container;												//整个大容器
+	var imgShell,filterShell;									//图片容器，滤镜图片容器
+	var btnCamera;												//上传图片按钮
+	var inputShell;												//输入框容器
+	var imgCanvas,filterCanvas;									//图片画布，滤镜画布
+	var baseLayer,inputLayer;									//基础图片对象，输入框对象
+	var layerNow;												//当前layer对象
+	var layerNum = 0,stickerNum = 0;							//layer对象数量,贴纸数量
+	var loadBox;												//loading遮罩 
+	var stkRemoveBtn;											//贴纸移除按钮
+
+	var imgScaleMin=0.5,imgScaleMax=5;							//最小缩放比例，最大缩放比例
     var fileInput;												//读取文件的对象
-    var jcanvasScale=1;											//画布的缩放比例
+    var jcanvasScale=1;											//画布的缩放比例，影响图片质量
     var imgSourceData={},imgEditData={},imgFilterData={};		//图片源数据，编辑图片的数据，滤镜图片数据
-    var onload;													//上传图片完成后的回调方法
-    var layerLast;												//存储当前贴纸对象
-    var stickerNum = 0;											//贴纸的数量
-    var stkRemoveBtn;											//移除贴纸的按钮
+    var onUpload;												//上传图片完成后的回调方法
+    var filterArr = [];											//存储滤镜图片的数组
     var filterTime = 0;											//当前滤镜数量
-    _self.clickFlag = false;									//贴纸是否能点击
-    var textLayerArr = [];										//存储文本对象的数组
     var filterImgs = {};										//存储滤镜图片的对象
+	var filterArr = [];											//存储滤镜图片的数组
+	var filterImgs = {};										//存储滤镜图片的对象
+    var textLayerArr = [];										//存储文本对象的数组
 
+    _self.opts = {};											//插件的配置选项
+    _self.sourceImg = "";										//上传图片的base64源文件
+    _self.eventNowEle = "";										//当前可点击对象
+    _self.photoCanvas;											//canvas对象
+	/****************************** 变量的定义 end ************************************/
+
+	/****************************** 公开的方法 start ************************************/
     //初始化
-    _self.init = function(box,facebox,btn,Cbtn,scale,callback){
-    	imgShell = box;
-    	btnCamera = btn;
-    	faceShell = facebox;
-    	stkRemoveBtn = Cbtn;
-    	jcanvasScale = scale;
-    	inputHt = $("#main .confirm").height();
-    	if(callback) onload = callback;
-    	var iscale = 1.5;
-    	if(os.android) iscale = 2;
+    _self.init = function(box,options){
+    	var defaultOpts = {
+    		scale:1,											//缩放比例，影响清晰度和效率
+    		filter:false,										//是否使用滤镜
+    		filterEffects:[],									//滤镜效果
+    		loadBox:$("#loading"),	
+    		stkRemoveBtn:$("#stkRemoveBtn"),							
+    		onUpload:function(img){}
+    	};
+    	_self.opts = $.extend(defaultOpts, options);
+    	
+    	container = box;
+    	loadBox = _self.opts.loadBox;
 
-    	fileInput=$('<input type="file" accept="image/*" name="imageInput" />').appendTo('body');
+    	imgShell = box.find('.photo');
+    	imgCanvas=$('<canvas></canvas>');
+    	_self.photoCanvas = imgCanvas;
+    	stkRemoveBtn = _self.opts.stkRemoveBtn;
+
+    	btnCamera = box.find('.btnCamera');
+    	jcanvasScale = _self.opts.scale;
+    	if(_self.opts.onUpload) onUpload = _self.opts.onUpload;
+
+    	fileInput=$('<input type="file" accept="image/*" name="imageInput" style="position: fixed; top:-200px; left: -200px; opacity:0;" />').appendTo('body');
 		fileInput.on('change',file_select);
-		imgCanvas=$('<canvas></canvas>');
-		faceCanvas=$('<canvas></canvas>');
-		scaleCanvas=$('<canvas></canvas>');
-		filterCanvas=$('<canvas></canvas>');
+		
+		if(_self.opts.filter) creatFilterBasePic();
+		
 		creatCanvas(imgCanvas,imgShell,jcanvasScale);
-		creatCanvas(faceCanvas,faceShell,jcanvasScale);
-		creatCanvas(scaleCanvas,scaleShell,jcanvasScale);
-		creatCanvas(filterCanvas,filterShell,iscale);
-		btnCamera.off().on('touchend',btnCamera_click);
 
+		btnCamera.on('touchend',uploadImg);
     }//end func
-
-    function creatText (argument) {
-    	imgCanvas.drawText({
-		  layer: true,
-		  name:'input',
-		  fillStyle: '#fff',
-		  fontStyle: 'bold',
-//		  strokeStyle: '#fff',
-//		  strokeWidth: 1,
-		  fontSize: Math.floor(60*jcanvasScale),
-		  text: '请输入您的宣言',
-		  x: imgCanvas.width()*0.5, y: inputHt*0.5*jcanvasScale,
-		  fromCenter: true,
-		  visible:false
-		}).drawLayers();
-		inputLayer = imgCanvas.getLayer('input');
-		// console.log(inputLayer);
-    }
-
-    //初始化
-    _self.reset = function(){
-    	stickerNum = 0;
-    	filterTime = 0;
-    	filterArr = [];
-    	baseLayer = null;
-    	frameLayer = null;
-    	layerLast = null;
-    	_self.clickFlag = false;
-    	filterImgs = {};
-    	imgShell.off();
-    }//end func
-
-    //新建canvas
-    function creatCanvas(canvas,shell,scale){
-    	canvas.attr({width:shell.width() * scale,height:shell.height() * scale,jcanvasScale:scale}).css({scale:1/scale}).prependTo(shell);
-    	canvas[0].getContext("2d").imageSmoothingEnabled = true;
-    }//end func
-
-    //点击上传
-    function btnCamera_click(e){
-		fileInput.click();
-	}//edn func
-
-	//拍照或打开本地图片
-	function file_select(e) {
-		loadBox.show();
-        var file = this.files[0];
-        if (file) {
-			ireader.read({ file: file, callback: function (resp,wd,ht) {
-                if (resp){
-                	imgSourceData={};
-            		imgSourceData.src=resp;
-            		imgSourceData.width=wd;
-            		imgSourceData.height=ht;
-            		_self.sourceImg = resp;
-
-            		var faceOpts = {
-						src:resp,
-						wd: wd,
-						ht: ht,
-						clear: true,
-						autoSize: true,
-						touch: false,
-						intangible: false,
-						index:0,
-						callback:function(){
-	            			setTimeout(function(){
-								_self.canvas_send(faceCanvas[0],onload,'loop_test');
-							},1000);
-	            		}
-					};
-
-					var baseOpts = {
-						src:resp,
-						wd: wd,
-						ht: ht,
-						clear: true,
-						autoSize: true,
-						touch: false,
-						intangible: false,
-						index:0,
-						callback:function(){
-	            			baseLayer=imgCanvas.getLayer("base");
-	      //       			setTimeout(function(){
-	      //       				// creatText();
-							// 	_self.canvas_send(imgCanvas[0],function(src){
-							// 		_self.baseImg = src;
-							// 	},'loop_test');
-							// },500);
-	            		}
-					};
-
-					var scaleOpts = {
-						src:resp,
-						wd: wd,
-						ht: ht,
-						clear: true,
-						autoSize: true,
-						touch: false,
-						intangible: false,
-						index:0
-					};
-
-					var filterOpts = {
-						src:resp,
-						wd: wd,
-						ht: ht,
-						clear: true,
-						autoSize: true,
-						touch: false,
-						intangible: false,
-						index:0
-					};
-
-            		_self.img_creat("facePic",faceCanvas,faceOpts);
-
-            		_self.img_creat("base",imgCanvas,baseOpts);
-
-            		_self.img_creat("scale",scaleCanvas,scaleOpts);
-
-            		_self.img_creat("filterPic",filterCanvas,filterOpts);
-                }//edn if
-                else loadBox.hide();
-            }});
-        }//end if
-        else loadBox.hide();
-    }//end select
 
     //canvas转图片
-    _self.canvas_send = function(canvas,callback,secretkey,type){
-		type=type||'jpg';
+    _self.canvasTrfImg = function(canvas,type,quality,callback,secretkey){
+		type = type || 'jpg';
+		quality = quality || 0.8;
 		loadBox.show();
 		if(type=='png'){
 			var src=canvas.toDataURL();
 			var data=src.split(",")[1];
-		}//edn if
+		}
 		else{
-			var src=canvas.toDataURL('image/jpeg', 0.8);
+			var src=canvas.toDataURL('image/jpeg', quality);
 			var data=src.split(",")[1];
-		}//end else
-		 _self.base64_send(data,callback,secretkey);
+		}
+		_self.base64TrfImg(data,callback,secretkey);
 	}//end func
 
     //转换base64类型的图片
-    _self.base64_send = function(data,callback){
+    _self.base64TrfImg = function(data,callback,secretkey){
+    	var key = secretkey || "loop_test";
     	loadBox.show();
-		$.post('http://upload.be-xx.com/upload', { data: data, key: 'loop_test' }, function (resp) {
+		$.post('http://upload.be-xx.com/upload', { data: data, key: key }, function (resp) {
 			callback(resp);
         });
     }//end func
@@ -202,107 +94,56 @@ var camera = function(){
     //复制图片至canvas
 	_self.img_creat = function(name,canvas,opts){
 		var options = {
-			src:"images/lottery/default.jpg",
-			wd:100,
-			ht:100,
+			src:"images/default.jpg",
+			wd:canvas.width(),
+			ht:canvas.height(),
 			x:canvas.width()*0.5,
 			y:canvas.height()*0.5,
 			clear:false,
-			autoSize:false,
+			autoSize:true,
 			touch:false,
 			intangible:false,
 			fromCenter:true,
 			index:10
 		};
-		options =  $.extend(options,opts);
+		options = $.extend(options,opts);
+
+		var iLayer = imgCanvas.getLayer(name);
+		if(iLayer) imgCanvas.removeLayer(iLayer);
 
 		if(options.autoSize) var size=imath.autoSize([options.wd,options.ht],[canvas.width(),canvas.height()],1);
 		else var size = [options.wd,options.ht];
+
 		if(options.clear) canvas.removeLayers();
+
 		canvas.drawImage({
-		  layer: true,
-		  name:name,
-		  source: options.src,
-		  width:size[0],height:size[1],
-		  x: options.x, y: options.y,
-		  scale:1,
-		  fromCenter: options.fromCenter,
-		  index:options.index,
-		  intangible:options.intangible,
-		  touchstart:layer_touchstart,
-		  itouch:options.touch
-		})
-		.drawLayers();
+			layer: true,
+			name:name,
+			source: options.src,
+			width:size[0],height:size[1],
+			x: options.x, y: options.y,
+			scale:1,
+			fromCenter: options.fromCenter,
+			index: options.index,
+			intangible: options.intangible,
+			touchstart: layer_touchstart,
+			itouch: options.touch
+		}).drawLayers();
+
 		if(options.callback) options.callback();
+		layerNum ++;
 	}//end func
 
-	//画一个背景
-	_self.drawBg = function(){
-		imgCanvas.addLayer({
-		  type: 'rectangle',
-		  index: 0,
-		  fillStyle: '#fff',
-		  x: 0, y: 0,
-		  width: imgCanvas.width() * jcanvasScale, height: imgCanvas.height() * jcanvasScale
-		})
-		.drawLayers();
-	}//end func
-
-	//创建二维码
-	_self.creatCode = function(name,options){
-		var opts = {
-			x:0,
-			y:0,
-			clear: false,
-			autoSize: false,
-			touch: false,
-			intangible: true,
-			fromCenter:false,
-			index:999,
-		};
-		opts =  $.extend(opts,options);
-		_self.img_creat(name,imgCanvas,opts);
-	}//end func
-
-	//创建边框
-	_self.creatFrame = function(src,w,h){
-		var opts = {
-			src: src,
-			wd: w * jcanvasScale,
-			ht: h * jcanvasScale,
-			x:0,
-			y:0,
-			clear: false,
-			autoSize: false,
-			touch: false,
-			intangible: true,
-			fromCenter:false,
-			index:999,
-			callback:function(){
-				frameLayer = imgCanvas.getLayer("frame");
-			}
-		};
-		if(frameLayer) imgCanvas.removeLayer(frameLayer);
-		_self.img_creat("frame",imgCanvas,opts);
-	}//end func
-
-	//设置封面透明
-	_self.frameTransparent = function(num){
-		if(frameLayer){
-			frameLayer.opacity = num;
-			imgCanvas.drawLayers();
-		}
+	//改变基础图片的源
+	_self.changeBasePic = function(src){
+		baseLayer.source = src;
+		imgCanvas.drawLayers();
 	}//end func
 
 	//绑定基础图片的事件
-	_self.setBaseEvent = function(){
-		imgScaleMin = 0.5;
-		img_addEvent(imgShell,imgCanvas,imgCanvas.getLayer("base"));
-	}//end func
-
-	//绑定贴纸的事件
-	_self.setStickerEvent = function(){
-		img_addEvent(imgShell,imgCanvas,imgCanvas.getLayer("s"+stickerNum));
+	_self.setBaseEvent = function(min){
+		imgScaleMin = min || 0.5;
+		img_addEvent(imgShell,imgCanvas,baseLayer);
 	}//end func
 
 	//添加贴纸
@@ -321,25 +162,26 @@ var camera = function(){
 		};
 		
 		_self.img_creat("s"+stickerNum,imgCanvas,opts);
-		// _self.setStickerEvent();
 	}//end func
 
 	//移除当前sticker
 	_self.removeSticker = function(){
-		imgCanvas.removeLayer(layerLast).drawLayers();
-		layerLast=null;
+		imgCanvas.removeLayer(layerNow).drawLayers();
+		layerNow=null;
 		stickerNum--;
+		layerNum--;
 		stkRemoveBtn.hide();
-	}//end func
+	}//edn func
 
+	/******************************  私有的方法 end ************************************/	
 	//点击事件
 	function layer_touchstart(layer){
-		if(layer.itouch && _self.clickFlag){
-			if(layerLast && layerLast!=layer){
-		  		$(this).moveLayer(layerLast, 1);
+		if(layer.itouch){
+			if(layerNow && layerNow!=layer){
+		  		$(this).moveLayer(layerNow, 1);
 		  	}
 		  	$(this).moveLayer(layer, stickerNum).drawLayers();
-			layerLast=layer;
+			layerNow=layer;
 			stk_position(layer);
 			stkRemoveBtn.show();
 			imgScaleMin = 0.5;
@@ -347,36 +189,107 @@ var camera = function(){
 		}
 	}//edn func
 
-	//改变基础图片的源
-	_self.changeBasePic = function(src){
-		baseLayer.source = src;
-		imgCanvas.drawLayers();
-	}//end func
+    //选择文件
+    function file_select(){
+    	loadBox.show();
+        var file = this.files[0];
+        if (file) {
+			ireader.read({ file: file, callback: function (resp,wd,ht) {
+                if (resp){
+                	loadBox.hide();
+                	btnCamera.hide();
+                	if(!_self.opts.filter) onUpload(resp);
 
-	//新建滤镜
-	_self.creatFilter = function(arr,callback){
-		imgEditData = {};
-		imgEditData.src = scaleCanvas.getCanvasImage('jpeg',0.5);
-    	imgEditData.width = scaleCanvas.width();
-    	imgEditData.height = scaleCanvas.height();
+					imgSourceData={};
+            		imgSourceData.src=resp;
+            		imgSourceData.width=wd;
+            		imgSourceData.height=ht;
+            		_self.sourceImg = resp;
 
-    	_self.creatFilterBasePic();
-    	filterImgs["原图"] = imgFilterData.src;
-    	for (var i = 0; i < arr.length; i++) {
-    		filterImgs[arr[i]] = "";
-    	};
+            		var baseOpts = {
+						src:resp,
+						wd: wd,
+						ht: ht,
+						clear: true,
+						touch: false,
+						autoSize: true,
+						intangible: false,
+						index:0,
+						callback:function(){
+							setTimeout(function(){
+								baseLayer=imgCanvas.getLayer("base");
+		            			imgEditData = {};
+								imgEditData.src = imgCanvas.getCanvasImage('jpeg',1);
+						    	imgEditData.width = imgCanvas.width();
+						    	imgEditData.height = imgCanvas.height();
+							},300);	
+	            		}
+					};
+            		_self.img_creat("base",imgCanvas,baseOpts);
 
-		filterArr = [imgEditData];
-		filterTime = arr.length;
-		getFilterImg(arr,callback);
-	}//end func
+            		if(_self.opts.filter){
+            			var filterOpts = {
+							src:resp,
+							wd: wd/5,
+							ht: ht/5,
+							clear: true,
+							touch: false,
+							autoSize: true,
+							intangible: false,
+							index:0,
+							callback:function(){
+								loadBox.show();
+								setTimeout(function(){
+									loadBox.hide();
+									onUpload(resp);
+								},310);
+							}
+						};
+            			_self.img_creat("filterPic",filterCanvas,filterOpts);
+            		}
+                }//edn if
+                else loadBox.hide();
+            }});
+        }//end if
+        else loadBox.hide();
+    }//end func
 
-	//获取滤镜处理后的图片
+    //上传图片
+    function uploadImg(){
+    	fileInput.click();
+    }//end func
+
+    //创建canvas
+    function creatCanvas(canvas,shell,scale){
+    	canvas.attr({width:shell.width() * scale,height:shell.height() * scale,jcanvasScale:scale}).css({scale:1/scale}).prependTo(shell);
+    	canvas[0].getContext("2d").imageSmoothingEnabled = true;
+    }//end func
+
+    //创建滤镜基础
+    function creatFilterBasePic(){
+    	var photoH = imgShell.height();
+		var photoW = imgShell.width();
+		var photoTop = imgShell[0].offsetTop;
+		var photoLeft = imgShell[0].offsetLeft;
+
+		imgShell.css({
+			"position": 'relative',
+			"z-index": '2'
+		});
+
+		filterShell = $('<div class="filter" style="position: absolute; top:'+photoTop+'px; left:'+photoLeft+'px; width: '+photoW/5+'px; height: '+photoH/5+'px; z-index: 1;"></div>').appendTo(container);
+		filterCanvas=$('<canvas></canvas>');
+		creatCanvas(filterCanvas,filterShell,1);
+
+		creatFilterFunc();
+    }//end func
+
+    //获取滤镜处理后的图片
 	function getFilterImg(arr,callback){
 		var img = new Image();
-    	img.src = imgEditData.src;
-    	img.width = imgEditData.width;
-    	img.height = imgEditData.height;
+    	img.src = imgFilterData.src;
+    	img.width = imgFilterData.width;
+    	img.height = imgFilterData.height;
     	img.loadOnce(function(){//loadOnce添加为alloyPhoto添加
     		var that = this;
     		try{
@@ -391,113 +304,67 @@ var camera = function(){
 		});
 	}//edn func
 
-	//改变滤镜
-	_self.changeFilter = function(type){
-		if(filterImgs[type] == ""){
-			icom.fadeIn(loadBox);
-			var img = new Image();
-			img.src = imgFilterData.src;
-	    	img.width = imgFilterData.width;
-	    	img.height = imgFilterData.height;
-	    	img.loadOnce(function(){//loadOnce添加为alloyPhoto添加
-	    		var that = this;
-	    		try{
-	    			AlloyImage(that).ps(type).replace(that);	
-	    		}catch(e){
-	    			alert(e);
-	    		}
-	    		filterImgs[type] = img.src;
-	    		_self.changeBasePic(filterImgs[type]);
-	    		icom.fadeOut(loadBox);
-			});
-		}
-		else{
-			_self.changeBasePic(filterImgs[type]);
-		}
+	//创建滤镜的方法
+	function creatFilterFunc(){
+		//新建滤镜
+		_self.creatFilter = function(arr,callback){
+			imgFilterData = {};
+			imgFilterData.src = filterCanvas.getCanvasImage('jpeg',1);
+	    	imgFilterData.width = filterCanvas.width();
+	    	imgFilterData.height = filterCanvas.height();
+
+	    	filterImgs["原图"] = imgEditData.src;
+	    	for (var i = 0; i < arr.length; i++) {
+	    		filterImgs[arr[i]] = "";
+	    	};
+
+			filterArr = [imgFilterData];
+			filterTime = arr.length;
+			getFilterImg(arr,callback);
+
+			imgCanvas.removeLayer(baseLayer);
+			var baseOpts = {
+				src:imgEditData.src,
+				wd: imgEditData.width,
+				ht: imgEditData.height,
+				clear: false,
+				touch: false,
+				intangible: false,
+				index:0,
+				callback:function(){
+					baseLayer=imgCanvas.getLayer("base");
+				}
+			};
+			_self.img_creat("base",imgCanvas,baseOpts);
+		}//end func
+
+		//改变滤镜
+		_self.changeFilter = function(type){
+			if(filterImgs[type] == ""){
+				loadBox.show()
+				var img = new Image();
+				img.src = imgEditData.src;
+		    	img.width = imgEditData.width;
+		    	img.height = imgEditData.height;
+		    	img.loadOnce(function(){//loadOnce添加为alloyPhoto添加
+		    		var that = this;
+		    		try{
+		    			AlloyImage(that).ps(type).replace(that);	
+		    		}catch(e){
+		    			alert(e);
+		    		}
+		    		filterImgs[type] = img.src;
+		    		_self.changeBasePic(filterImgs[type]);
+		    		loadBox.hide();
+				});
+			}
+			else{
+				_self.changeBasePic(filterImgs[type]);
+			}
+		}//end func
 	}//end func
 
-	//新创建滤镜基础图片
-	_self.creatFilterBasePic = function(){
-		imgFilterData = {};
-    	imgFilterData.src = filterCanvas.getCanvasImage('jpeg',1);
-    	imgFilterData.width = filterCanvas.width();
-    	imgFilterData.height = filterCanvas.height();
-
-    	var baseOpts = {
-			src:imgFilterData.src,
-			wd: imgFilterData.width,
-			ht: imgFilterData.height,
-			clear: true,
-			autoSize: true,
-			touch: false,
-			intangible: false,
-			index:0,
-			callback:function(){
-    			baseLayer=imgCanvas.getLayer("base");
-    		}
-		};
-
-		_self.img_creat("base",imgCanvas,baseOpts);
-	}//end func
-
-	//新增text文本
-	_self.setText = function(text,opts){
-		// console.log(inputLayer);
-		inputLayer.text = text;
-		inputLayer.fillStyle = opts.color;
-		inputLayer.fontSize = opts.size * jcanvasScale + "px";
-		inputLayer.x = imgCanvas.width()*0.5 + opts.ofts[0] * jcanvasScale;
-		inputLayer.y = (opts.ofts[1] + inputHt/2) * jcanvasScale;	
-		inputLayer.visible = true;
-		if(opts.fontStyle) inputLayer.fontStyle = opts.fontStyle;
-		if(opts.shadow){
-			inputLayer.shadowBlur = opts.shadow.blur;
-			inputLayer.shadowColor = opts.shadow.color;
-			inputLayer.shadowX = opts.shadow.x;
-			inputLayer.shadowY = opts.shadow.y;			
-		}
-		imgCanvas.moveLayer(inputLayer, 1000).drawLayers();
-	}//end func
-
-	//添加一个文本
-	_self.addTextLayer = function(text,opts){
-		var num = textLayerArr.length;
-
-		imgCanvas.drawText({
-		  layer: true,
-		  name:'input'+num,
-		  fillStyle: opts.color,
-		  fontStyle: opts.fontStyle,
-		  fontSize: opts.size * jcanvasScale,
-		  text: text,
-		  x: opts.x * jcanvasScale, y: opts.y * jcanvasScale + inputHt/2,
-		  fromCenter: false,
-		  shadowBlur: opts.shadow.blur,
-		  shadowColor: opts.shadow.color,
-		  shadowX: opts.shadow.x,
-		  shadowY: opts.shadow.y
-		}).drawLayers();
-
-		textLayerArr.push(imgCanvas.getLayer('input'+num));
-		// console.log(textLayerArr);
-	}//end func
-
-	//移除所有文本
-	_self.removeTextLayer = function(){
-		for (var i = 0; i < textLayerArr.length; i++) {
-			imgCanvas.removeLayer(textLayerArr[i]);
-		};
-		imgCanvas.drawLayers();
-		textLayerArr = [];
-	}//end func
-
-	//隐藏文本
-	_self.setTextHide = function(){
-		inputLayer.visible = false;
-		imgCanvas.drawLayers();
-	}//end func
-
-/**************************事件 start*******************************/
+	/*********** 绑定事件 start ***********/	
 	function img_addEvent(shell,canvas,layer){
 		shell.off().on('pinch',{layer:layer,canvas:canvas},img_pinch).on('pinchmove',{layer:layer},img_pinchmove).on('pinchscale',{layer:layer},img_pinchscale).on('pinchrotate',{layer:layer},img_pinchrotate);
 	}//end func
@@ -507,6 +374,7 @@ var camera = function(){
 		var layer=e.data.layer;
    		layer.x+=xOffset;
 		layer.y+=yOffset;
+
 		if(layer.itouch){
 			stk_position(layer);
 		}
@@ -552,8 +420,6 @@ var camera = function(){
 		var canvas=e.data.canvas;
 		canvas.drawLayers();
 	}//end func
-/**************************事件 end*******************************/
-
+	/*********** 绑定事件 end ***********/
+	/******************************  私有的方法 end ************************************/	
 }//end func
-
-var icamera = new camera();

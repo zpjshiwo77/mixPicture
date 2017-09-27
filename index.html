@@ -14,11 +14,76 @@
 </head>
 <body>
 <article>
-	
+	<div class="photoBox" id="photoContainer">
+		<div class="photo">
+			
+		</div>
+		<div class="btnCamera">点击上传照片</div>
+		<div class="removeBtn"><i></i><i></i></div>
+	</div>
+
+	<div class="panels none" id="panels">
+
+		<div class="switch">
+			<div class="btn active" data-type="filter">选择滤镜</div>
+			<div class="btn" data-type="sticker">选择贴纸</div>
+			<div class="btn" data-type="frame">选择相框</div>
+		</div>
+
+		<div class="choseBox filterBox " id="filter">
+			<!-- <div class="photo active">
+				<img src="images/frame/f1.png">
+				<p>原图</p>
+			</div> -->
+		</div>
+
+		<div class="choseBox stickerBox none" id="sticker">
+			<img src="images/icons/i1.png">
+			<img src="images/icons/i2.png">
+			<img src="images/icons/i3.png">
+			<img src="images/icons/i4.png">
+			<img src="images/icons/i5.png">
+		</div>
+
+		<div class="choseBox frameBox none" id="frame">
+			<div class="block" data-id="0">
+				<img src="images/frame/f1.png" class="iframe">
+			</div>
+			<div class="block" data-id="1">
+				<img src="images/frame/f2.png" class="iframe">
+			</div>
+			<div class="block" data-id="2">
+				<img src="images/frame/f3.png" class="iframe">
+			</div>
+			<div class="block" data-id="3">
+				<img src="images/frame/f4.png" class="iframe">
+			</div>
+			<div class="block" data-id="4">
+				<img src="images/frame/f5.png" class="iframe">
+			</div>
+		</div>
+		
+		<div class="confirmBox">
+			<div class="cancel">取消</div>
+			<div class="confirm">确定</div>
+		</div>
+	</div>
+
+	<div class="resultBox none">
+		<img src="">
+	</div>
 </article>
 
+<aside id="loading" style="display:none;">
+	<div class="cont">请稍等...</div>
+</aside>
+
 <script src="js/widget/jquery.js"></script>
+<script src="js/widget/reader.js"></script>
+<script src="js/widget/pinch.js"></script>
+<script src="js/widget/math.js"></script>
 <script src="js/widget/jcanvas.min.js"></script>
+<script src="js/widget/alloyimage.1.1.js"></script>
 <script src="js/camera.js"></script>
 <script src="js/index.js"></script>
 </body>
