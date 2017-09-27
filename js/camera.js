@@ -7,7 +7,7 @@ var camera = function(){
 	var btnCamera;												//上传图片按钮
 	var inputShell;												//输入框容器
 	var imgCanvas,filterCanvas;									//图片画布，滤镜画布
-	var baseLayer,inputLayer;									//基础图片对象，输入框对象
+	var baseLayer;												//基础图片对象
 	var layerNow;												//当前layer对象
 	var layerNum = 0,stickerNum = 0;							//layer对象数量,贴纸数量
 	var loadBox;												//loading遮罩 
@@ -18,17 +18,16 @@ var camera = function(){
     var jcanvasScale=1;											//画布的缩放比例，影响图片质量
     var imgSourceData={},imgEditData={},imgFilterData={};		//图片源数据，编辑图片的数据，滤镜图片数据
     var onUpload;												//上传图片完成后的回调方法
-    var filterArr = [];											//存储滤镜图片的数组
     var filterTime = 0;											//当前滤镜数量
-    var filterImgs = {};										//存储滤镜图片的对象
 	var filterArr = [];											//存储滤镜图片的数组
 	var filterImgs = {};										//存储滤镜图片的对象
-    var textLayerArr = [];										//存储文本对象的数组
 
     _self.opts = {};											//插件的配置选项
     _self.sourceImg = "";										//上传图片的base64源文件
     _self.eventNowEle = "";										//当前可点击对象
     _self.photoCanvas;											//canvas对象
+    _self.stkClick = true;										//是否允许贴纸的click事件
+
 	/****************************** 变量的定义 end ************************************/
 
 	/****************************** 公开的方法 start ************************************/
@@ -66,17 +65,37 @@ var camera = function(){
 		btnCamera.on('touchend',uploadImg);
     }//end func
 
+    //初始化
+    _self.reset = function(){
+    	stickerNum = 0;
+    	layerNum = 0;
+    	filterTime = 0;
+    	filterArr = [];
+    	baseLayer = null;
+    	layerNow = null;
+    	filterImgs = {};
+    	textLayerArr = [];
+    	imgShell.off();
+    	imgCanvas.clearCanvas();
+    	filterCanvas.clearCanvas();
+    	btnCamera.show();
+    	stkRemoveBtn.hide();
+    }//end func
+
     //canvas转图片
-    _self.canvasTrfImg = function(canvas,type,quality,callback,secretkey){
-		type = type || 'jpg';
-		quality = quality || 0.8;
+    _self.canvasTrfImg = function(opts){
+		var type = opts.type || 'jpg';
+		var quality = opts.quality || 0.8;
+		var secretkey = opts.secretkey || "loop_test";
+		var callback = opts.callback || false;
+
 		loadBox.show();
 		if(type=='png'){
-			var src=canvas.toDataURL();
+			var src=imgCanvas[0].toDataURL();
 			var data=src.split(",")[1];
 		}
 		else{
-			var src=canvas.toDataURL('image/jpeg', quality);
+			var src=imgCanvas[0].toDataURL('image/jpeg', quality);
 			var data=src.split(",")[1];
 		}
 		_self.base64TrfImg(data,callback,secretkey);
@@ -87,13 +106,14 @@ var camera = function(){
     	var key = secretkey || "loop_test";
     	loadBox.show();
 		$.post('http://upload.be-xx.com/upload', { data: data, key: key }, function (resp) {
-			callback(resp);
+			loadBox.hide();
+			if(callback) callback(resp);
         });
     }//end func
 
     //复制图片至canvas
 	_self.img_creat = function(name,canvas,opts){
-		var options = {
+		var defaultOpts = {
 			src:"images/default.jpg",
 			wd:canvas.width(),
 			ht:canvas.height(),
@@ -106,7 +126,7 @@ var camera = function(){
 			fromCenter:true,
 			index:10
 		};
-		options = $.extend(options,opts);
+		var options = $.extend(defaultOpts,opts);
 
 		var iLayer = imgCanvas.getLayer(name);
 		if(iLayer) imgCanvas.removeLayer(iLayer);
@@ -173,10 +193,49 @@ var camera = function(){
 		stkRemoveBtn.hide();
 	}//edn func
 
+	//移除layer
+	_self.removeLayer = function(name){
+		var iLayer = imgCanvas.getLayer(name);
+		if(iLayer) imgCanvas.removeLayer(iLayer).drawLayers();
+	}//end func
+
+	//添加一个文本
+	_self.addTextLayer = function(name,text,opts){
+		var defaultOpts = {
+			color:"#333",
+			fontStyle:"normal",
+			fontSize: 24,
+			x:0,
+			y:0,
+			shadow:{
+				x:0,
+				y:0,
+				blur:0,
+				color:"#fff"
+			}
+		};
+		opts = $.extend(defaultOpts, opts);
+		
+		imgCanvas.drawText({
+			layer: true,
+			name: name,
+			fillStyle: opts.color,
+			fontStyle: opts.fontStyle,
+			fontSize: opts.fontSize * jcanvasScale,
+			text: text,
+			x: opts.x * jcanvasScale, y: opts.y * jcanvasScale,
+			fromCenter: false,
+			shadowBlur: opts.shadow.blur,
+			shadowColor: opts.shadow.color,
+			shadowX: opts.shadow.x,
+			shadowY: opts.shadow.y
+		}).drawLayers();
+	}//end func
+
 	/******************************  私有的方法 end ************************************/	
 	//点击事件
 	function layer_touchstart(layer){
-		if(layer.itouch){
+		if(layer.itouch && _self.stkClick){
 			if(layerNow && layerNow!=layer){
 		  		$(this).moveLayer(layerNow, 1);
 		  	}
