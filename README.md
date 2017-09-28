@@ -24,9 +24,9 @@
 
 对象的属性：
 	
-	* iCamera.sourceImg								上传图片的base64源文件（base图片）
-    * iCamera.photoCanvas;							合成图片画布的基础canvas对象（jquery对象）
-    * iCamera.stkClick								是否允许贴纸的click事件（bool）
+	* iCamera.sourceImg                             上传图片的base64源文件（base图片）
+    * iCamera.photoCanvas;                          合成图片画布的基础canvas对象（jquery对象）
+    * iCamera.stkClick                              是否允许贴纸的click事件（bool）
 							
 对象的方法：
 
