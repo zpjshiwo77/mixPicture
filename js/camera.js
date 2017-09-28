@@ -24,7 +24,6 @@ var camera = function(){
 
     _self.opts = {};											//插件的配置选项
     _self.sourceImg = "";										//上传图片的base64源文件
-    _self.eventNowEle = "";										//当前可点击对象
     _self.photoCanvas;											//canvas对象
     _self.stkClick = true;										//是否允许贴纸的click事件
 
@@ -36,7 +35,6 @@ var camera = function(){
     	var defaultOpts = {
     		scale:1,											//缩放比例，影响清晰度和效率
     		filter:false,										//是否使用滤镜
-    		filterEffects:[],									//滤镜效果
     		loadBox:$("#loading"),	
     		stkRemoveBtn:$("#stkRemoveBtn"),							
     		onUpload:function(img){}
@@ -113,6 +111,7 @@ var camera = function(){
 
     //复制图片至canvas
 	_self.img_creat = function(name,canvas,opts){
+		canvas = canvas || imgCanvas;
 		var defaultOpts = {
 			src:"images/default.jpg",
 			wd:canvas.width(),
@@ -161,8 +160,9 @@ var camera = function(){
 	}//end func
 
 	//绑定基础图片的事件
-	_self.setBaseEvent = function(min){
+	_self.setBaseEvent = function(min,max){
 		imgScaleMin = min || 0.5;
+		imgScaleMax = max || 5;
 		img_addEvent(imgShell,imgCanvas,baseLayer);
 	}//end func
 
