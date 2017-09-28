@@ -207,6 +207,10 @@ var camera = function(){
 			fontSize: 24,
 			x:0,
 			y:0,
+			align:"left",
+			lineHeight:1.2,
+			maxNum:100,
+			index:1000,
 			shadow:{
 				x:0,
 				y:0,
@@ -215,16 +219,20 @@ var camera = function(){
 			}
 		};
 		opts = $.extend(defaultOpts, opts);
+		if(opts.maxNum)  text = textToMulti(text,opts.maxNum);
 		
 		imgCanvas.drawText({
 			layer: true,
 			name: name,
+			index: opts.index,
 			fillStyle: opts.color,
 			fontStyle: opts.fontStyle,
 			fontSize: opts.fontSize * jcanvasScale,
 			text: text,
+			align: opts.align,
 			x: opts.x * jcanvasScale, y: opts.y * jcanvasScale,
 			fromCenter: false,
+			lineHeight: opts.lineHeight,
 			shadowBlur: opts.shadow.blur,
 			shadowColor: opts.shadow.color,
 			shadowX: opts.shadow.x,
@@ -232,7 +240,26 @@ var camera = function(){
 		}).drawLayers();
 	}//end func
 
-	/******************************  私有的方法 end ************************************/	
+	/******************************  私有的方法 end ************************************/
+
+	//切割单行文字成几行
+	function textToMulti(str,maxNum){
+		var arr = [];
+		var i = 0;
+		do{
+			arr.push(str.substr(i,maxNum));
+			i += maxNum;
+		}
+		while(i < str.length)
+
+		str = "";
+		for (var i = 0; i < arr.length; i++) {
+			if(i == 0) str += arr[i];
+			else str += "\n" + arr[i];
+		};
+		return str;
+	}//end func
+
 	//点击事件
 	function layer_touchstart(layer){
 		if(layer.itouch && _self.stkClick){

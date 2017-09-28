@@ -3,6 +3,9 @@ $(document).ready(function(){
 	var icamera = new camera();
 	var filters = ["自然增强","仿lomo","美肤","柔焦"];
 	var panels = $("#panels");
+	var inputBox = $(".inputBox");
+	var startCoords = [0,0];
+	var endCoords = [0,0];
 
 	pageInit();
 
@@ -21,6 +24,40 @@ $(document).ready(function(){
 		$("#frame").on("click",".block",changeFrame);
 		$(".cancel").on("click",resetPhoto);
 		$(".confirm").on("click",creatMixPhoto);
+		inputBox.on("blur",showInputTips);
+		inputBox.on("focus",hideInputTips);
+		inputBox.on("touchstart",wordBoxStart);
+		inputBox.on("touchmove",wordBoxMove);
+	}//end func
+
+	//点击wordbox
+	function wordBoxStart(e) {
+		startCoords = [e.changedTouches[0].pageX,e.changedTouches[0].pageY];
+	}//end func
+
+	//移动文字盒子
+	function wordBoxMove(e){
+		endCoords = [e.changedTouches[0].pageX,e.changedTouches[0].pageY];
+		var oftX = endCoords[0] - startCoords[0];
+		var oftY = endCoords[1] - startCoords[1];
+
+		inputBox.css({
+			top: '+='+oftY,
+			left: '+='+oftX
+		});
+
+		startCoords = endCoords;
+		e.preventDefault();
+	}//end func
+
+	//隐藏提示
+	function hideInputTips(){
+		if($(this).text() == "请输入您的文字...") $(this).text('');
+	}//end func
+
+	//显示提示
+	function showInputTips(){
+		if($(this).text() == "") $(this).text('请输入您的文字...');
 	}//end func
 
 	//创建合成的图片
@@ -35,11 +72,22 @@ $(document).ready(function(){
 
 	//新增文字
 	function addText(){
-		var opts = {
-			x:100,
-			y:10
-		};
-		icamera.addTextLayer("testWord","测试文字",opts);
+		var text = inputBox.text();
+		if(text != "" || text != "请输入您的文字..."){
+			var opts = {
+				x:delPX(inputBox.css('left')),
+				y:delPX(inputBox.css('top')),
+				fontSize:delPX(inputBox.css('fontSize')),
+				lineHeight:1.2,
+				maxNum:14
+			};
+			icamera.addTextLayer("testWord",text,opts);
+		}
+		inputBox.hide();
+		//去掉单位
+		function delPX(str){
+			return parseInt(str.split("px")[0])
+		}//end func
 	}//end func
 
 	//新增二维码
@@ -71,6 +119,7 @@ $(document).ready(function(){
 	function resetPhoto () {
 		icamera.reset();
 		panels.hide();
+		inputBox.hide();
 	}//end func
 
 	//修改封面
@@ -97,7 +146,6 @@ $(document).ready(function(){
 
 	//移除sticker
 	function removeSticker(){
-		console.log(11);
 		icamera.removeSticker();
 	}//end func
 
@@ -127,12 +175,14 @@ $(document).ready(function(){
 		$(".removeBtn").hide();
 		icamera.stkClick = false;
 		icamera.setBaseEvent();
+		inputBox.hide();
 	}//end func
 
 	//显示贴纸插件
 	function showStickerBox(){
 		icamera.stkClick = true;
 		$("#sticker").show();
+		inputBox.hide();
 	}//end func
 
 	//显示边框插件
@@ -141,6 +191,7 @@ $(document).ready(function(){
 		icamera.stkClick = false;
 		icamera.setBaseEvent();
 		$(".removeBtn").hide();
+		inputBox.show();
 	}//end func
 
 	//改变滤镜

@@ -5,6 +5,7 @@
 	height: 9rem;
 	margin: 0 auto;
 	position: relative;
+	overflow: hidden;
 }
 .photoBox .photo{
 	margin: 0 auto;
@@ -50,7 +51,18 @@
 }
 .photoBox .removeBtn i:last-child{
 	-webkit-transform: translate(-50%,-50%) rotate(-45deg);
-
+}
+.photoBox .inputBox{
+	width: 4rem;
+	height: auto;
+	border: 1px solid #333;
+	color: #333;
+	font-size: 0.28rem;
+	line-height: 1.2;
+	position: absolute;
+	top:0;
+	left: 0;
+	z-index: 20;
 }
 /*photoBox end*/
 
