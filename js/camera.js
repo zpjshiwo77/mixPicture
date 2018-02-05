@@ -75,7 +75,7 @@ var camera = function(){
     	textLayerArr = [];
     	imgShell.off();
     	imgCanvas.clearCanvas();
-    	filterCanvas.clearCanvas();
+    	if(_self.opts.filter) filterCanvas.clearCanvas();
     	btnCamera.show();
     	stkRemoveBtn.hide();
     }//end func
@@ -220,6 +220,9 @@ var camera = function(){
 		};
 		opts = $.extend(defaultOpts, opts);
 		if(opts.maxNum)  text = textToMulti(text,opts.maxNum);
+
+		var iLayer = imgCanvas.getLayer(name);
+		if(iLayer) imgCanvas.removeLayer(iLayer);
 		
 		imgCanvas.drawText({
 			layer: true,
