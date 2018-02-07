@@ -74,10 +74,13 @@ var camera = function(){
     	filterImgs = {};
     	textLayerArr = [];
     	imgShell.off();
-    	imgCanvas.clearCanvas();
-    	if(_self.opts.filter) filterCanvas.clearCanvas();
+    	imgCanvas.removeLayers().drawLayers();
+    	if(_self.opts.filter) filterCanvas.removeLayers().drawLayers();
     	btnCamera.show();
     	stkRemoveBtn.hide();
+    	fileInput.remove();
+    	fileInput=$('<input type="file" accept="image/*" name="imageInput" style="position: fixed; top:-200px; left: -200px; opacity:0;" />').appendTo('body');
+		fileInput.on('change',file_select);
     }//end func
 
     //canvas转图片
@@ -287,7 +290,6 @@ var camera = function(){
                 if (resp){
                 	loadBox.hide();
                 	btnCamera.hide();
-                	if(!_self.opts.filter) onUpload(resp);
 
 					imgSourceData={};
             		imgSourceData.src=resp;
@@ -311,6 +313,7 @@ var camera = function(){
 								imgEditData.src = imgCanvas.getCanvasImage('jpeg',1);
 						    	imgEditData.width = imgCanvas.width();
 						    	imgEditData.height = imgCanvas.height();
+						    	if(!_self.opts.filter) onUpload(resp);
 							},300);	
 	            		}
 					};
@@ -347,6 +350,18 @@ var camera = function(){
     function uploadImg(){
     	fileInput.click();
     }//end func
+
+    //画一个背景
+	_self.drawBg = function(color){
+		imgCanvas.addLayer({
+		  type: 'rectangle',
+		  index: 0,
+		  fillStyle: color,
+		  x: 0, y: 0,
+		  width: imgCanvas.width() * jcanvasScale, height: imgCanvas.height() * jcanvasScale
+		})
+		.drawLayers();
+	}//end func
 
     //创建canvas
     function creatCanvas(canvas,shell,scale){
