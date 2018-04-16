@@ -20,7 +20,7 @@ $(document).ready(function(){
 		$("#filter").on("click",".photo",changeFilter);
 		$(".switch .btn").on("click",switchEditFunc);
 		$("#sticker").on("click","img",addSticker);
-		$("#photoContainer").on("click",".removeBtn",removeSticker);
+		$(".removeBtn").on("click",removeSticker);
 		$("#frame").on("click",".block",changeFrame);
 		$(".cancel").on("click",resetPhoto);
 		$(".confirm").on("click",creatMixPhoto);
