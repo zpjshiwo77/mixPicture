@@ -1,91 +1,100 @@
 ﻿<!DOCTYPE html>
 <html>
+
 <head>
-<title>图片合成</title>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,target-densitydpi=device-dpi,initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="format-detection" content="telephone=no" />
-<meta name="format-detection" content="email=no" />
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-<meta http-equiv="Pragma" content="no-cache" />
-<meta http-equiv="Expires" content="0" />
-<link rel="stylesheet" href="css/common.css">
-<link rel="stylesheet" href="css/index.css">
+	<title>图片合成</title>
+	<meta charset="utf-8">
+	<meta name="viewport"
+		content="width=device-width,target-densitydpi=device-dpi,initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+	<meta name="format-detection" content="telephone=no" />
+	<meta name="format-detection" content="email=no" />
+	<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+	<meta http-equiv="Pragma" content="no-cache" />
+	<meta http-equiv="Expires" content="0" />
+	<link rel="stylesheet" href="css/common.css">
+	<link rel="stylesheet" href="css/index.css">
 </head>
+
 <body>
-<article>
-	<div class="photoBox" id="photoContainer">
-		<div class="photo">
-			
-		</div>
-		<div class="btnCamera">点击上传照片</div>
-		<div class="removeBtn"><i></i><i></i></div>
-		<div class="inputBox none" contenteditable="true">请输入您的文字...</div>
-	</div>
+	<article>
+		<div class="photoBox" id="photoContainer">
+			<div class="photo">
 
-	<div class="panels none" id="panels">
-
-		<div class="switch">
-			<div class="btn active" data-type="filter">选择滤镜</div>
-			<div class="btn" data-type="sticker">选择贴纸</div>
-			<div class="btn" data-type="frame">选择相框</div>
-		</div>
-
-		<div class="choseBox filterBox " id="filter">
-			<!-- <div class="photo active">
-				<img src="images/frame/f1.png">
-				<p>原图</p>
-			</div> -->
-		</div>
-
-		<div class="choseBox stickerBox none" id="sticker">
-			<img src="images/icons/i1.png">
-			<img src="images/icons/i2.png">
-			<img src="images/icons/i3.png">
-			<img src="images/icons/i4.png">
-			<img src="images/icons/i5.png">
-		</div>
-
-		<div class="choseBox frameBox none" id="frame">
-			<div class="block" data-id="0">
-				<img src="images/frame/f1.png" class="iframe">
 			</div>
-			<div class="block" data-id="1">
-				<img src="images/frame/f2.png" class="iframe">
+			<div class="btnCamera">点击上传照片</div>
+			<div class="removeBtn"><i></i><i></i></div>
+			<div class="inputBox none" contenteditable="true">请输入您的文字...</div>
+		</div>
+
+		<div class="panels none" id="panels">
+
+			<div class="switch">
+				<div class="btn active" data-type="filter">选择滤镜</div>
+				<div class="btn" data-type="sticker">选择贴纸</div>
+				<div class="btn" data-type="frame">选择相框</div>
 			</div>
-			<div class="block" data-id="2">
-				<img src="images/frame/f3.png" class="iframe">
+
+			<div class="choseBox filterBox" id="filter">
+				<div class="filterScrollBox">
+					<div class="filterScrollCont">
+						<!-- <div class="photo active">
+							<img src="images/frame/f1.png">
+							<p>原图</p>
+						</div> -->
+					</div>
+				</div>
 			</div>
-			<div class="block" data-id="3">
-				<img src="images/frame/f4.png" class="iframe">
+
+			<div class="choseBox stickerBox none" id="sticker">
+				<img src="images/icons/i1.png">
+				<img src="images/icons/i2.png">
+				<img src="images/icons/i3.png">
+				<img src="images/icons/i4.png">
+				<img src="images/icons/i5.png">
 			</div>
-			<div class="block" data-id="4">
-				<img src="images/frame/f5.png" class="iframe">
+
+			<div class="choseBox frameBox none" id="frame">
+				<div class="block" data-id="0">
+					<img src="images/frame/f1.png" class="iframe">
+				</div>
+				<div class="block" data-id="1">
+					<img src="images/frame/f2.png" class="iframe">
+				</div>
+				<div class="block" data-id="2">
+					<img src="images/frame/f3.png" class="iframe">
+				</div>
+				<div class="block" data-id="3">
+					<img src="images/frame/f4.png" class="iframe">
+				</div>
+				<div class="block" data-id="4">
+					<img src="images/frame/f5.png" class="iframe">
+				</div>
+			</div>
+
+			<div class="confirmBox">
+				<div class="cancel">取消</div>
+				<div class="confirm">确定</div>
 			</div>
 		</div>
-		
-		<div class="confirmBox">
-			<div class="cancel">取消</div>
-			<div class="confirm">确定</div>
+
+		<div class="resultBox none">
+			<img src="">
 		</div>
-	</div>
+	</article>
 
-	<div class="resultBox none">
-		<img src="">
-	</div>
-</article>
+	<aside id="loading" style="display:none;">
+		<div class="cont">请稍等...</div>
+	</aside>
 
-<aside id="loading" style="display:none;">
-	<div class="cont">请稍等...</div>
-</aside>
-
-<script src="js/widget/jquery.js"></script>
-<script src="js/widget/reader.js"></script>
-<script src="js/widget/pinch.js"></script>
-<script src="js/widget/math.js"></script>
-<script src="js/widget/jcanvas.min.js"></script>
-<script src="js/widget/alloyimage.1.1.js"></script>
-<script src="js/camera.js?v=4"></script>
-<script src="js/index.js"></script>
+	<script src="js/widget/jquery.js"></script>
+	<script src="js/widget/reader.js"></script>
+	<script src="js/widget/pinch.js"></script>
+	<script src="js/widget/math.js"></script>
+	<script src="js/widget/jcanvas.min.js"></script>
+	<script src="js/widget/iscroll.js"></script>
+	<script src="js/widget/alloyimage.1.1.js"></script>
+	<script src="js/camera.js?v=4"></script>
+	<script src="js/index.js"></script>
 </body>
+
 </html>

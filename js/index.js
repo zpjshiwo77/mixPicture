@@ -1,11 +1,17 @@
 $(document).ready(function(){
 	//变量定义
 	var icamera = new camera();
-	var filters = ["自然增强","仿lomo","美肤","柔焦"];
+	var filters = ["自然增强","仿lomo","美肤","柔焦","素描","紫调","复古","黑白","亮白增强","灰白","暖秋","木雕","粗糙"];
 	var panels = $("#panels");
 	var inputBox = $(".inputBox");
 	var startCoords = [0,0];
 	var endCoords = [0,0];
+	var filterScroll = new IScroll('.filterScrollBox',{
+		bounce:true,
+		click:true,
+		scrollX:true,
+		scrollY:false
+	});
 
 	pageInit();
 
@@ -58,16 +64,17 @@ $(document).ready(function(){
 	//显示提示
 	function showInputTips(){
 		if($(this).text() == "") $(this).text('请输入您的文字...');
+		$("body").scrollTop(0);
 	}//end func
 
 	//创建合成的图片
 	function creatMixPhoto () {
 		addText();
-		addQRcode(function(){
+		// addQRcode(function(){
 			setTimeout(function(){
 				icamera.canvasTrfImg({callback:renderResult});
 			},300);
-		});
+		// });
 	}//end func
 
 	//新增文字
@@ -176,6 +183,7 @@ $(document).ready(function(){
 		icamera.stkClick = false;
 		icamera.setBaseEvent();
 		inputBox.hide();
+		filterScroll.refresh();
 	}//end func
 
 	//显示贴纸插件
@@ -222,7 +230,7 @@ $(document).ready(function(){
 
 	//渲染滤镜缩略图
 	function renderFilter(data){
-		var box = $("#filter");
+		var box = $(".filterScrollCont");
 		box.empty();
 		var cont = "";
 		for (var i = 0; i < data.length; i++) {
@@ -232,5 +240,7 @@ $(document).ready(function(){
 		};
 		box.append(cont);
 		$("#panels").show();
+		box.width($(".filterScrollCont .photo").outerWidth(true) * data.length + 10);
+		filterScroll.refresh();
 	}//end func
 });//end ready
